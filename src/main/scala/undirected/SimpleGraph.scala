@@ -31,10 +31,17 @@ trait SimpleGraph[V] {
       * @param v2 other end of path to search
       * @return `true` if `v1` and `v2` are equal or if a path exists between `v1` and `v2`, `false` otherwise
       */
-    def hasPath(v1 : V, v2 : V) : Boolean = ???
+    def hasPath(v1 : V, v2 : V) : Boolean = recHasPath(v1,v2,Set(v1))
+
+    def recHasPath(v1 : V, v2 : V, fait : Set[V]) : Boolean = ((vertices contains v1) && (vertices contains v2)) &&
+      ((v1 equals v2) ||
+        ((neighborsOf(v1) match {
+              case Some(x) => x
+              case None => None
+          }) .iterator.filter { fait contains _ } foldLeft false) { (b : Boolean, v:V) => b && recHasPath(v, v2, fait + v) } )
 
     /** Checks if graph is connected */
-    lazy val isConnected : Boolean = ???
+    lazy val isConnected : Boolean = (for (x <- vertices; y <- vertices) yield (x,y)) forall { hasPath _ }
 
     /** Checks if graph is acyclic */
     lazy val isAcyclic : Boolean = ???
