@@ -36,15 +36,21 @@ trait SimpleGraph[V] {
     def recHasPath(v1 : V, v2 : V, fait : Set[V]) : Boolean = ((vertices contains v1) && (vertices contains v2)) &&
       ((v1 equals v2) ||
         ((neighborsOf(v1) match {
-              case Some(x) => x
-              case None => None
-          }) .iterator.filter { fait contains _ } foldLeft false) { (b : Boolean, v:V) => b && recHasPath(v, v2, fait + v) } )
+            case Some(x) => x
+            case None => None
+        }) .iterator.filterNot { fait contains _ } foldLeft false) { (b,v) => b || recHasPath(v, v2, fait + v) })
 
     /** Checks if graph is connected */
     lazy val isConnected : Boolean = (for (x <- vertices; y <- vertices) yield (x,y)) forall { hasPath _ }
 
     /** Checks if graph is acyclic */
-    lazy val isAcyclic : Boolean = ???
+    lazy val isAcyclic : Boolean = (vertices foldLeft true) { (b,v) => b && recAcyclic(v, Set(v), v)}
+
+    def recAcyclic(v: V, fait : Set[V], parent : V) : Boolean =
+        ((neighborsOf(v) match {
+            case Some(x) => x
+            case None => None
+        }) .iterator.filterNot { parent equals _ } foldLeft true) { (b,v1) => b && !(fait contains v1) && recAcyclic(v1, fait + v1, v) }
 
     /** Checks if graph is a tree */
     lazy val isTree : Boolean = isConnected && isAcyclic
