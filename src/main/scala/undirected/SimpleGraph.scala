@@ -44,7 +44,7 @@ trait SimpleGraph[V] {
     lazy val isConnected : Boolean = (for (x <- vertices; y <- vertices) yield (x,y)) forall { hasPath _ }
 
     /** Checks if graph is acyclic */
-    lazy val isAcyclic : Boolean = (vertices foldLeft true) { (b,v) => b && recAcyclic(v, Set(v), v)}
+    lazy val isAcyclic : Boolean = (vertices foldLeft true) { (b,v) => b && recAcyclic(v, Set(v), v) }
 
     def recAcyclic(v: V, fait : Set[V], parent : V) : Boolean =
         ((neighborsOf(v) match {
@@ -109,12 +109,15 @@ trait SimpleGraph[V] {
       * @param valuation valuation used
       * @return a spanning tree whose value is minimal
       */
-    def minimumSpanningTree(valuation : Map[Edge[V], Double]) : SimpleGraph[V] = ???
+    def minimumSpanningTree(valuation : Map[Edge[V], Double]) : SimpleGraph[V] = ((edges.toSeq sortBy valuation)
+      foldLeft this.withoutEdge) {
+        (s,e) => if ((s +| e).isAcyclic) {s +| e} else s
+    }
 
     /* COLORING METHODS */
 
     /** Sequence of vertices sorted by decreasing degree */
-    lazy val sortedVertices : Seq[V] = vertices.toSeq sortBy degreeOf
+    lazy val sortedVertices : Seq[V] = (vertices.toSeq sortBy degreeOf).reverse
 
     /** Proper coloring using greedy algorithm (a.k.a WELSH-POWELL) */
     lazy val greedyColoring : Map[V, Int] = ???
