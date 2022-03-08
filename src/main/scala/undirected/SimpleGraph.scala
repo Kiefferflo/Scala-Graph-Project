@@ -38,7 +38,7 @@ trait SimpleGraph[V] {
         ((neighborsOf(v1) match {
             case Some(x) => x
             case None => None
-        }) .iterator.filterNot { fait contains _ } foldLeft false) { (b,v) => b || recHasPath(v, v2, fait + v) })
+        }) .iterator.filterNot {fait contains _} foldLeft false) { (b, v) => b || recHasPath(v, v2, fait + v) })
 
     /** Checks if graph is connected */
     lazy val isConnected : Boolean = (for (x <- vertices; y <- vertices) yield (x,y)) forall { hasPath _ }
@@ -114,7 +114,7 @@ trait SimpleGraph[V] {
     /* COLORING METHODS */
 
     /** Sequence of vertices sorted by decreasing degree */
-    lazy val sortedVertices : Seq[V] = ???
+    lazy val sortedVertices : Seq[V] = vertices.toSeq sortBy degreeOf
 
     /** Proper coloring using greedy algorithm (a.k.a WELSH-POWELL) */
     lazy val greedyColoring : Map[V, Int] = ???
