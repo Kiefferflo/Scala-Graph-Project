@@ -120,7 +120,10 @@ trait SimpleGraph[V] {
     lazy val sortedVertices : Seq[V] = (vertices.toSeq sortBy degreeOf).reverse
 
     /** Proper coloring using greedy algorithm (a.k.a WELSH-POWELL) */
-    lazy val greedyColoring : Map[V, Int] = ???
+    lazy val greedyColoring : Map[V, Int] = (sortedVertices foldLeft Map.empty[V, Int]) {
+        (m,v) => m + ((v,
+          ((m filter { neighborsOf(v) contains _ }).values.toSeq.sorted foldLeft 0) {(i,n) => if (i == n) {i+1} else i }
+        )) }
 
     /** Proper coloring using DSATUR algorithm */
     lazy val coloringDSATUR : Map[V, Int] = ???
