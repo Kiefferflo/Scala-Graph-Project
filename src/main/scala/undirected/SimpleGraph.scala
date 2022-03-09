@@ -1,7 +1,5 @@
 package undirected
 
-import scala.annotation.tailrec
-
 /** Trait for an undirected and ''simple'' graph, that is without loop nor parallel edges
   * @tparam V type for vertices
   */
