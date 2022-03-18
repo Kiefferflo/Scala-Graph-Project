@@ -31,14 +31,14 @@ trait SimpleGraph[V] {
       */
     def hasPath(v1 : V, v2 : V) : Boolean = ((vertices contains v1) && (vertices contains v2)) && recHasPath(v1,v2,Set(v1))
 
-    def recHasPath(v1 : V, v2 : V, fait : Set[V]) : Boolean = (v1 equals v2) ||
+    def recHasPath(v1 : V, v2 : V, fait : Set[V]) : Boolean = (v1 == v2) ||
         ((neighborsOf(v1) match {
             case Some(x) => x
             case None => None
         }) .iterator.filterNot {fait contains _} foldLeft false) { (b, v) => b || recHasPath(v, v2, fait + v) }
 
     /** Checks if graph is connected */
-    lazy val isConnected : Boolean = (for (x <- vertices; y <- vertices) yield (x,y)) forall { hasPath _ }
+    lazy val isConnected : Boolean = (for (x <- vertices; y <- vertices) yield (x,y)) forall { case (x,y) => hasPath(x,y) }
 
     /** Checks if graph is acyclic */
     lazy val isAcyclic : Boolean = (vertices foldLeft true) { (b,v) => b && recAcyclic(v, Set(v), v) }
@@ -47,7 +47,7 @@ trait SimpleGraph[V] {
         ((neighborsOf(v) match {
             case Some(x) => x
             case None => None
-        }) .iterator.filterNot { parent equals _ } foldLeft true) { (b,v1) => b && !(fait contains v1) && recAcyclic(v1, fait + v1, v) }
+        }) .iterator.filterNot { parent == _ } foldLeft true) { (b,v1) => b && !(fait contains v1) && recAcyclic(v1, fait + v1, v) }
 
     /** Checks if graph is a tree */
     lazy val isTree : Boolean = isConnected && isAcyclic
@@ -116,7 +116,8 @@ trait SimpleGraph[V] {
     /** Sequence of vertices sorted by decreasing degree */
     lazy val sortedVertices : Seq[V] = (vertices.toSeq sortBy degreeOf).reverse
 
-    def whichColor(m : Map[V, Int], v : V) : Int = ((m filter { neighborsOf(v) contains _ }).values.toSeq.sorted foldLeft 0) {(i,n) => if (i == n) {i+1} else i }
+    def whichColor(m : Map[V, Int], v : V) : Int = ((m filter { neighborsOf(v) contains _ }).values.toSeq.sorted
+      foldLeft 0) {(i,n) => if (i == n) {i+1} else i }
 
     /** Proper coloring using greedy algorithm (a.k.a WELSH-POWELL) */
     lazy val greedyColoring : Map[V, Int] = (sortedVertices foldLeft Map.empty[V, Int]) {
@@ -128,7 +129,7 @@ trait SimpleGraph[V] {
     def recDSATUR(colore : Map[V, Int], v : V) : Map[V, Int] = if (colore.size == vertices.size) colore
     else
         recDSATUR(
-            colore + (v, whichColor(colore,v)),
+            colore + ((v, whichColor(colore,v))),
             sortedVertices filterNot { colore contains _ } maxBy { DSAT(colore,_) }
         )
 
