@@ -8,29 +8,49 @@ package undirected
 case class SimpleGraphNeighborsImpl[V](neighbors : Map[V, Set[V]]) extends SimpleGraph[V] {
 
     /** @inheritdoc */
-    val vertices : Set[V] = ???
+    val vertices : Set[V] = neighbors.keySet
 
     /** @inheritdoc */
-    val edges : Set[Edge[V]] = ???
+    val edges : Set[Edge[V]] = (neighbors foldLeft {Set.empty[Edge[V]]})
+    {
+      (s,p)=>(p._2 foldLeft s)
+      {
+        (stemp,v2)=> stemp +Edge(p._1,v2)
+      } 
+    }
 
     /** @inheritdoc */
-    def neighborsOf(v: V) : Option[Set[V]] = ???
+    def neighborsOf(v: V) : Option[Set[V]] = neighbors(v) match
+       { 
+      case x if x.nonEmpty=> Some(x)
+      case _ => None
+    }
 
     /** @inheritdoc */
-    def + (v : V) : SimpleGraphNeighborsImpl[V] = ???
+    def + (v : V) : SimpleGraphNeighborsImpl[V] =  SimpleGraphNeighborsImpl(neighbors + (v->Set.empty[V]))
 
     /** @inheritdoc */
-    def - (v : V) : SimpleGraphNeighborsImpl[V] = ???
+    def - (v : V) : SimpleGraphNeighborsImpl[V] = SimpleGraphNeighborsImpl(neighbors - v)
 
     /** @inheritdoc */
-    def +| (e: Edge[V]) : SimpleGraphNeighborsImpl[V] = ???
+    def +| (e: Edge[V]) : SimpleGraphNeighborsImpl[V] = SimpleGraphNeighborsImpl((neighbors + (e._1->(neighbors(e._1) + e._2)))+(e._2->(neighbors(e._2) + e._1)) )
 
     /** @inheritdoc */
-    def -| (e: Edge[V]) : SimpleGraphNeighborsImpl[V] = ???
+    def -| (e: Edge[V]) : SimpleGraphNeighborsImpl[V] =SimpleGraphNeighborsImpl((neighbors + (e._1->(neighbors(e._1) - e._2)))+(e._2->(neighbors(e._2) - e._1)) )
 
     /** @inheritdoc */
-    def withoutEdge : SimpleGraphNeighborsImpl[V] = ???
+    def withoutEdge : SimpleGraphNeighborsImpl[V] = SimpleGraphNeighborsImpl(
+    (neighbors foldLeft Map.empty[V,Set[V]])
+    {
+      (m,p)=>m+ (p._1->Set.empty[V])
+    }
+    )
 
     /** @inheritdoc */
-    def withAllEdges : SimpleGraphNeighborsImpl[V] = ???
+    def withAllEdges : SimpleGraphNeighborsImpl[V] = SimpleGraphNeighborsImpl(
+    (neighbors foldLeft Map.empty[V,Set[V]])
+    {
+      (m,p)=>m+ (p._1->vertices)
+    }
+    )
 }

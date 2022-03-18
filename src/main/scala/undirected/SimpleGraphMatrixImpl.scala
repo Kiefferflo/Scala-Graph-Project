@@ -37,21 +37,21 @@ case class SimpleGraphMatrixImpl[V](vs : Seq[V], adjacency : IndexedSeq[IndexedS
             }
 
     /** @inheritdoc */
-    def + (v : V) : SimpleGraphMatrixImpl[V] = SimpleGraphMatrixImpl[V](vs:+v,adjacency :+ (for(x<-vs:+v) yield 0).toIndexedSeq)
+    def + (v : V) : SimpleGraphMatrixImpl[V] = SimpleGraphMatrixImpl(vs:+v,adjacency :+ (for(x<-vs:+v) yield 0).toIndexedSeq)
 
     /** @inheritdoc */
-    def - (v : V) : SimpleGraphMatrixImpl[V] = SimpleGraphMatrixImpl[V](vs filterNot {_ == v }, 
+    def - (v : V) : SimpleGraphMatrixImpl[V] = SimpleGraphMatrixImpl(vs filterNot {_ == v }, 
       (adjacency splitAt(vs indexOf v) 
         match { 
-          case(x,y)=> x :++y drop 1  
+          case(x,y)=> x :++(y drop 1)
       })
       map {_ splitAt(vs indexOf v) 
         match { 
-          case(x,y)=> x :++y drop 1  
+          case(x,y)=> x :++(y drop 1) 
       }})
 
     /** @inheritdoc */
-    def +| (e : Edge[V]) : SimpleGraphMatrixImpl[V] = SimpleGraphMatrixImpl[V](
+    def +| (e : Edge[V]) : SimpleGraphMatrixImpl[V] = SimpleGraphMatrixImpl(
     vs,(adjacency.zipWithIndex foldLeft IndexedSeq.empty[IndexedSeq[Int]]) {
     (adj,a)=> adj :+ 
       (if (vs(a._2)==e._1) 
@@ -67,7 +67,7 @@ case class SimpleGraphMatrixImpl[V](vs : Seq[V], adjacency : IndexedSeq[IndexedS
     })
 
     /** @inheritdoc */
-    def -| (e : Edge[V]) : SimpleGraphMatrixImpl[V] =SimpleGraphMatrixImpl[V](
+    def -| (e : Edge[V]) : SimpleGraphMatrixImpl[V] =SimpleGraphMatrixImpl(
     vs,(adjacency.zipWithIndex foldLeft IndexedSeq.empty[IndexedSeq[Int]]) {
     (adj,a)=> adj :+ 
       (if (vs(a._2)==e._1) 
@@ -82,10 +82,10 @@ case class SimpleGraphMatrixImpl[V](vs : Seq[V], adjacency : IndexedSeq[IndexedS
     })
 
     /** @inheritdoc */
-    def withoutEdge : SimpleGraphMatrixImpl[V] = SimpleGraphMatrixImpl[V](vs,adjacency.empty)
+    def withoutEdge : SimpleGraphMatrixImpl[V] = SimpleGraphMatrixImpl(vs,adjacency.empty)
 
     /** @inheritdoc */
-    def withAllEdges : SimpleGraphMatrixImpl[V] = SimpleGraphMatrixImpl[V](
+    def withAllEdges : SimpleGraphMatrixImpl[V] = SimpleGraphMatrixImpl(
     vs, (for (x<-vs) yield(for(x<-vs) yield 1).toIndexedSeq).toIndexedSeq)
   }
 
