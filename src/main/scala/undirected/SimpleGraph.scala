@@ -1,7 +1,5 @@
 package undirected
 
-import scala.annotation.tailrec
-
 /** Trait for an undirected and ''simple'' graph, that is without loop nor parallel edges
   * @tparam V type for vertices
   */
@@ -31,13 +29,25 @@ trait SimpleGraph[V] {
       * @param v2 other end of path to search
       * @return `true` if `v1` and `v2` are equal or if a path exists between `v1` and `v2`, `false` otherwise
       */
-    def hasPath(v1 : V, v2 : V) : Boolean = ???
+    def hasPath(v1 : V, v2 : V) : Boolean = ((vertices contains v1) && (vertices contains v2)) && recHasPath(v1,v2,Set(v1))
+
+    def recHasPath(v1 : V, v2 : V, fait : Set[V]) : Boolean = (v1 == v2) ||
+        ((neighborsOf(v1) match {
+            case Some(x) => x
+            case None => None
+        }) .iterator.filterNot {fait contains _} foldLeft false) { (b, v) => b || recHasPath(v, v2, fait + v) }
 
     /** Checks if graph is connected */
-    lazy val isConnected : Boolean = ???
+    lazy val isConnected : Boolean = (for (x <- vertices; y <- vertices) yield (x,y)) forall { case (x,y) => hasPath(x,y) }
 
     /** Checks if graph is acyclic */
-    lazy val isAcyclic : Boolean = ???
+    lazy val isAcyclic : Boolean = (vertices foldLeft true) { (b,v) => b && recAcyclic(v, Set(v), v) }
+
+    def recAcyclic(v: V, fait : Set[V], parent : V) : Boolean =
+        ((neighborsOf(v) match {
+            case Some(x) => x
+            case None => None
+        }) .iterator.filterNot { parent == _ } foldLeft true) { (b,v1) => b && !(fait contains v1) && recAcyclic(v1, fait + v1, v) }
 
     /** Checks if graph is a tree */
     lazy val isTree : Boolean = isConnected && isAcyclic
@@ -96,18 +106,38 @@ trait SimpleGraph[V] {
       * @param valuation valuation used
       * @return a spanning tree whose value is minimal
       */
-    def minimumSpanningTree(valuation : Map[Edge[V], Double]) : SimpleGraph[V] = ???
+    def minimumSpanningTree(valuation : Map[Edge[V], Double]) : SimpleGraph[V] = ((edges.toSeq sortBy valuation)
+      foldLeft this.withoutEdge) {
+        (s,e) => if ((s +| e).isAcyclic) {s +| e} else s
+    }
 
     /* COLORING METHODS */
 
     /** Sequence of vertices sorted by decreasing degree */
-    lazy val sortedVertices : Seq[V] = ???
+    lazy val sortedVertices : Seq[V] = (vertices.toSeq sortBy degreeOf).reverse
+
+    def whichColor(m : Map[V, Int], v : V) : Int = ((m filter { neighborsOf(v) contains _ }).values.toSeq.sorted
+      foldLeft 0) {(i,n) => if (i == n) {i+1} else i }
 
     /** Proper coloring using greedy algorithm (a.k.a WELSH-POWELL) */
-    lazy val greedyColoring : Map[V, Int] = ???
+    lazy val greedyColoring : Map[V, Int] = (sortedVertices foldLeft Map.empty[V, Int]) {
+        (m,v) => m + ((v, whichColor(m,v))) }
 
     /** Proper coloring using DSATUR algorithm */
-    lazy val coloringDSATUR : Map[V, Int] = ???
+    lazy val coloringDSATUR : Map[V, Int] = recDSATUR(Map((sortedVertices.head, 1)), sortedVertices.head)
+
+    def recDSATUR(colore : Map[V, Int], v : V) : Map[V, Int] = if (colore.size == vertices.size) colore
+    else
+        recDSATUR(
+            colore + ((v, whichColor(colore,v))),
+            sortedVertices filterNot { colore contains _ } maxBy { DSAT(colore,_) }
+        )
+
+    def DSAT(colore : Map[V, Int], v : V) : Int = ((neighborsOf(v) match {
+        case Some(x) => x
+        case None => None
+    }) .iterator.filter { colore contains _ } .toSeq.groupMapReduce(identity) { _ => 1 } { _ + _ }
+      foldLeft 0) { (i, p) => i + p._2 }
 
     /* toString-LIKE METHODS */
 
