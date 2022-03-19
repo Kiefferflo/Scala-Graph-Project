@@ -18,23 +18,42 @@ trait StrictGraph[V] {
       */
     def successorsOf(v : V) : Option[Set[V]]
 
+
     /** The number of incoming arcs to input vertex
       * @param v vertex
       * @return [[None]] if `v` is not an actual vertex, the inner degree of `v` otherwise
       */
-    def inDegreeOf(v : V) : Option[Int] = ???
+    def inDegreeOf(v : V) : Option[Int] =
+        if (vertices.contains(v)) Some( // le point entré appartient à la liste des points
+            numberOfArcsByDestination(v) //Check from numberOfArcsByDestination
+
+        ) else None
+
+
+    lazy val numberOfArcsByOrigin : Map[V, Int] =
+        arcs groupBy(_._1) map {case(o->ar) => (o->ar.size)}
+    lazy val numberOfArcsByDestination : Map[V, Int] =
+        arcs groupBy(_._2) map {case(d->ar) => (d->ar.size)}
+
+
+
 
     /** The number of outcoming arcs to input vertex
       * @param v vertex
       * @return [[None]] if `v` is not an actual vertex, the outer degree of `v` otherwise
       */
-    def outDegreeOf(v : V) : Option[Int] = ???
+    def outDegreeOf(v : V) : Option[Int] =
+        if (vertices.contains(v)) Some( // le point entré appartient à la liste des points
+            numberOfArcsByOrigin(v) //Check from numberOfArcsByDestination
+        ) else None
 
     /** The number of adjacent vertices to input vertex
       * @param v vertex
       * @return [[None]] if `v` is not an actual vertex, the degree of `v` otherwise
       */
-    def degreeOf(v : V) : Option[Int] = ???
+    def degreeOf(v : V) : Option[Int] = if (vertices.contains(v)) Some( // le point entré appartient à la liste des points
+        numberOfArcsByOrigin(v) + numberOfArcsByDestination(v) //TODO WARNING May cause problem if arcs goes both ways
+    ) else None
 
     /* VERTEX OPERATIONS */
 
@@ -81,7 +100,61 @@ trait StrictGraph[V] {
     /* SEARCH METHODS */
 
     /** A topological order of the vertex set (if exists) */
-    lazy val topologicalOrder : Option[Seq[V]] = ???
+        /** L'ordre topologique existe si le classement topologique est de taille egal au nombre de sommets */
+    lazy val topologicalOrder : Option[Seq[V]] =
+        if (topologicalBeginning.size==vertices.size) topologicalBeginning else None
+
+
+    //Créer une fonction recursive: Cherche tous ceux avec out=0
+    // Et les mets en memoire V1.
+    // Puis, on cherche ceux dont out ne connecte qu'à ceux en V1,
+    // On les stock dans V2. Puis V1=V1+V2, et V2 = Void.
+    // On recommance jusqu'à ce que V2 = Void
+    def topologicalBeginning: Option[Seq[V]] = {
+        val myVal = (for (v<-vertices if outDegreeOf(v)==0) yield (v)).toSeq
+        if (myVal==None) None else topologicalRecursive(Some(myVal))
+    }
+
+    /**
+     *
+     * @param alreadyOrdered Les sommets deja tries
+     * @return L'ensemble des sommets que l'on a reussi a trier
+     * Afin de fonctionner, on cree NouvValTrie, qui correspond aux sommets suivant a ajouter
+     *      Si nouvValTrie est nul, la fonction est finie, sinon, elle "boucle"
+     */
+    def topologicalRecursive(alreadyOrdered: Option[Seq[V]]): Option[Seq[V]] = {
+        val nouvValTrie = (for (v<-vertices if canAddToTopological(v,alreadyOrdered)) yield (v)).toSeq
+        if (nouvValTrie==None) alreadyOrdered else topologicalRecursive(alreadyOrdered+nouvValTrie)
+    }
+
+    /**
+     *
+     * @param v Le sommet a tester
+     * @param option Les sommets deja place dans l'analyse topologique
+     * @return False si on a deja place le sommet, allDestinationsAlreadyCovered sinon
+     */
+    def canAddToTopological(v: V, option: Option[Seq[V]]): Boolean = {
+        if (option.isEmpty) false else (
+            if (option.contains(v)) false else allDestinationsAlreadyCovered(v, option))
+    }
+
+    /**
+     *
+     * @param v Le sommet a tester
+     * @param option Les sommets deja tries
+     * @return Retourne vrai si tous les sommets pointes par le sommet a tester
+     *         sont deja tries, faux sinon
+     */
+    def allDestinationsAlreadyCovered(v: V, option: Option[Seq[V]]): Boolean = {
+        val inelegantWay = for (ar<- arcs if ar._1==v) yield (option.contains(ar._2))
+        //On enregistre tous les arcs partant de v, et si option contient la destination
+        (!inelegantWay.contains(false))
+        //Retourne false si inelegantWay contient false, true sinon
+    }
+
+    /**
+    * Return True if all elements from the first Seq are in the second
+     */
 
     /* VALUATED GRAPH METHODS */
 
@@ -92,6 +165,8 @@ trait StrictGraph[V] {
       * @return [[None]] if there is no path from `start` to `end`, the shortest path and its valuation otherwise
       */
     def shortestPath(valuation : Map[Arc[V], Double])(start : V, end : V) : Option[(Seq[V], Double)] = ???
+
+    //Pour shortestPath: definir methode partielle prenant en parametre positionActuelle, valeurActuelle, destination, une map associant un V a un double
 
     /* toString-LIKE METHODS */
 
