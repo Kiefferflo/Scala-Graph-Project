@@ -35,6 +35,15 @@ trait StrictGraph[V] {
     lazy val numberOfArcsByDestination : Map[V, Int] =
         arcs groupBy(_._2) map {case(d->ar) => (d->ar.size)}
 
+    /**
+    lazy val myPath : Map[V, V] =
+        (arcs foldLeft Map.empty[V,V]) {
+            (m,ar) => m + (ar._1->ar._2)
+            }
+    */
+
+    def getArcFromVertice(x1:V,x2:V): Option[Arc[V]] = arcs.find(x => (x._1==x1) && (x._2==x2))
+
 
 
 
@@ -111,7 +120,12 @@ trait StrictGraph[V] {
     // On les stock dans V2. Puis V1=V1+V2, et V2 = Void.
     // On recommance jusqu'à ce que V2 = Void
     def topologicalBeginning: Option[Seq[V]] = {
-        val myVal = (for (v<-vertices if outDegreeOf(v)==0) yield (v)).toSeq
+
+        val myVal = (for (v<-vertices if
+          (outDegreeOf(v) match {
+              case Some(x) if x== 0=> true
+              case Some(x) if x!= 0=> false
+              case None => false })) yield v).toSeq
         if (myVal==None) None else topologicalRecursive(Some(myVal))
     }
 
@@ -123,7 +137,7 @@ trait StrictGraph[V] {
      *      Si nouvValTrie est nul, la fonction est finie, sinon, elle "boucle"
      */
     def topologicalRecursive(alreadyOrdered: Option[Seq[V]]): Option[Seq[V]] = {
-        val nouvValTrie = (for (v<-vertices if canAddToTopological(v,alreadyOrdered)) yield (v)).toSeq
+        val nouvValTrie = (for (v<-vertices if canAddToTopological(v,alreadyOrdered)) yield v).toSeq
         if (nouvValTrie==None) alreadyOrdered else topologicalRecursive(alreadyOrdered+nouvValTrie)
     }
 
@@ -134,8 +148,11 @@ trait StrictGraph[V] {
      * @return False si on a deja place le sommet, allDestinationsAlreadyCovered sinon
      */
     def canAddToTopological(v: V, option: Option[Seq[V]]): Boolean = {
-        if (option.isEmpty) false else (
-            if (option.contains(v)) false else allDestinationsAlreadyCovered(v, option))
+        option match {
+            case Some(x) => if (x.contains(v)) false else allDestinationsAlreadyCovered(v, x)
+            case None => false
+        }
+
     }
 
     /**
@@ -145,10 +162,10 @@ trait StrictGraph[V] {
      * @return Retourne vrai si tous les sommets pointes par le sommet a tester
      *         sont deja tries, faux sinon
      */
-    def allDestinationsAlreadyCovered(v: V, option: Option[Seq[V]]): Boolean = {
-        val inelegantWay = for (ar<- arcs if ar._1==v) yield (option.contains(ar._2))
+    def allDestinationsAlreadyCovered(v: V, option: Seq[V]): Boolean = {
+        val inelegantWay = for (ar<- arcs if ar._1==v) yield option.contains(ar._2)
         //On enregistre tous les arcs partant de v, et si option contient la destination
-        (!inelegantWay.contains(false))
+        !inelegantWay.contains(false)
         //Retourne false si inelegantWay contient false, true sinon
     }
 
@@ -165,6 +182,38 @@ trait StrictGraph[V] {
       * @return [[None]] if there is no path from `start` to `end`, the shortest path and its valuation otherwise
       */
     def shortestPath(valuation : Map[Arc[V], Double])(start : V, end : V) : Option[(Seq[V], Double)] = ???
+    //La fonction valuation retourne la valeur de l'arc
+
+    def initMyCalculation(valuation : Map[Arc[V], Double])(start:V): Map[V,(V,Double)] = {
+        MyCalculation(valuation)(
+            (vertices foldLeft Map.empty[V,(V,Double)]) {
+                (m,v) => v match {
+                    case x if x == start  =>  m + (v->(v,0.0))
+                    case _              => m + (v->(v,99999.0))
+                }
+            },start,0.0)
+    }
+
+    def MyCalculation(valuation : Map[Arc[V], Double])(accumulationToHere : Map[V,(V,Double)],currentlyAt:V,currentLength:Double) : Map[V,(V,Double)] = {
+        val MyMap  = (accumulationToHere foldLeft Map.empty[V,(V,Double)]) {
+            (m,v) => v._2 match {
+                case (_,value) if value> valuator(valuation)(currentlyAt,v._1)  =>
+                        m + (v._1->(currentlyAt,currentLength + valuator(valuation)(currentlyAt,v._1) ))
+                case _              => m + (v)
+            }
+        }
+        if (MyMap!=accumulationToHere) () else MyMap
+    }
+
+    def valuator(valuation : Map[Arc[V], Double])(x1:V,x2:V): Double = {
+        getArcFromVertice(x1, x2) match {
+            case None     => 99999999.0
+            case Some(x)      => valuation.get(x) match {
+                case Some(value) => value
+                case None => 99999999.0
+            }
+        }
+    }
 
     //Pour shortestPath: definir methode partielle prenant en parametre positionActuelle, valeurActuelle, destination, une map associant un V a un double
 
