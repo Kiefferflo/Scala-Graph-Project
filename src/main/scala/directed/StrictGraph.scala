@@ -1,7 +1,7 @@
 package directed
 
 import scala.annotation.tailrec
-
+//Merci Florent, beni des cieux
 /** Trait for a directed ''and strict'' graph, i.e. without loop nor parallel arcs */
 trait StrictGraph[V] {
     /* QUERY METHODS */
@@ -181,8 +181,18 @@ trait StrictGraph[V] {
       * @param end   destination of path
       * @return [[None]] if there is no path from `start` to `end`, the shortest path and its valuation otherwise
       */
-    def shortestPath(valuation : Map[Arc[V], Double])(start : V, end : V) : Option[(Seq[V], Double)] = ???
-    //La fonction valuation retourne la valeur de l'arc
+    def shortestPath(valuation : Map[Arc[V], Double])(start : V, end : V) : Option[(Seq[V], Double)] = {
+        val thankYouKieffer = initMyCalculation(valuation)(start)
+        if (thankYouKieffer contains end) {
+            Some((readFromEnd(thankYouKieffer, start, end, Seq.empty[V]),thankYouKieffer(end)._2))
+        } else None
+    }
+
+    def readFromEnd(thankYouKieffer: Map[V,(V,Double)],start:V, current:V,accumul:Seq[V]):Seq[V] =
+        if (current!=start) readFromEnd(thankYouKieffer,start,
+                                        thankYouKieffer(current)._1,
+                                        (accumul :+ current))
+        else accumul :+ current
 
     def initMyCalculation(valuation : Map[Arc[V], Double])(start:V): Map[V,(V,Double)] = {
         MyCalculation(valuation)(
@@ -195,14 +205,20 @@ trait StrictGraph[V] {
     }
 
     def MyCalculation(valuation : Map[Arc[V], Double])(accumulationToHere : Map[V,(V,Double)],currentlyAt:V,currentLength:Double) : Map[V,(V,Double)] = {
-        val MyMap  = (accumulationToHere foldLeft Map.empty[V,(V,Double)]) {
-            (m,v) => v._2 match {
-                case (_,value) if value> valuator(valuation)(currentlyAt,v._1)  =>
-                        m + (v._1->(currentlyAt,currentLength + valuator(valuation)(currentlyAt,v._1) ))
-                case _              => m + (v)
-            }
+        val MyMap = (accumulationToHere foldLeft Map.empty[V, (V, Double)]) {
+            (m, v) =>
+                v._2 match {
+                    case (_, value) if value > valuator(valuation)(currentlyAt, v._1) =>
+                        m + (v._1 -> (currentlyAt, currentLength + valuator(valuation)(currentlyAt, v._1)))
+                    case _ => m + (v)
+                }
         }
-        if (MyMap!=accumulationToHere) () else MyMap
+        if (MyMap != accumulationToHere)
+            successorsOf(currentlyAt) match {
+                case Some(x) => (x foldLeft MyMap) { (m, suc) => MyCalculation(valuation)(m, suc, currentLength + valuator(valuation)(currentlyAt, suc)) }
+                case None => MyMap
+            }
+        else MyMap
     }
 
     def valuator(valuation : Map[Arc[V], Double])(x1:V,x2:V): Double = {
