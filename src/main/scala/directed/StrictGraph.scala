@@ -245,7 +245,7 @@ trait StrictGraph[V] {
      *                      We could do without by reading from Dijktra's map, but it was hard enough to keep track of everything as is
      * @return Dijktra's map, possibly improved
      */
-    @tailrec final def MyCalculation(valuation : Map[Arc[V], Double])(accumulationToHere : Map[V,(V,Double)], currentlyAt:V, currentLength:Double) : Map[V,(V,Double)] = {
+    final def MyCalculation(valuation : Map[Arc[V], Double])(accumulationToHere : Map[V,(V,Double)], currentlyAt:V, currentLength:Double) : Map[V,(V,Double)] = {
         val MyMap = (accumulationToHere foldLeft Map.empty[V, (V, Double)]) {
             (m, v) =>
                 v._2 match { //Si la longueur enregistree est superieurs a la longueur actuelle
@@ -255,6 +255,14 @@ trait StrictGraph[V] {
                 }
         }
         // We want to do a 'Deep Search', with "MyMap" being actualised along the way
+        /*
+        (MyMap,successorsOf(currentlyAt)) match {
+            case (y,Some(x)) if (y!=accumulationToHere) =>
+                (x foldLeft MyMap) { (m, suc) => (MyCalculation(valuation)(m, suc, currentLength + valuator(valuation)(currentlyAt, suc)) ) }
+            case (_,_)                                  => MyMap // Doesn't work, to investigate
+        }
+         */
+
         if (MyMap != accumulationToHere)
             successorsOf(currentlyAt) match {
                 case None => MyMap //Put in this order so Inteliji won't tell me recursion isn't at the end of the function
