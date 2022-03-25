@@ -44,10 +44,11 @@ trait SimpleGraph[V] {
     lazy val isAcyclic : Boolean = (vertices foldLeft true) { (b,v) => b && recAcyclic(v, Set(v), v) }
 
     def recAcyclic(v: V, fait : Set[V], parent : V) : Boolean =
-        ((neighborsOf(v) match {
-            case Some(x) => x
-            case None => None
-        }) .iterator.filterNot { parent == _ } foldLeft true) { (b,v1) => b && !(fait contains v1) && recAcyclic(v1, fait + v1, v) }
+        neighborsOf(v) match {
+            case Some(x) => (x filterNot { parent == _ } foldLeft true)
+        { (b,v1) => b && !(fait contains v1) && recAcyclic(v1, fait + v1, v) }
+            case None => true
+        }
 
     /** Checks if graph is a tree */
     lazy val isTree : Boolean = isConnected && isAcyclic

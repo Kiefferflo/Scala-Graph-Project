@@ -21,7 +21,7 @@ case class SimpleGraphNeighborsImpl[V](neighbors : Map[V, Set[V]]) extends Simpl
 
     /** @inheritdoc */
     def neighborsOf(v: V) : Option[Set[V]] = neighbors(v) match
-       { 
+    {
       case x if x.nonEmpty=> Some(x)
       case _ => None
     }
@@ -36,7 +36,7 @@ case class SimpleGraphNeighborsImpl[V](neighbors : Map[V, Set[V]]) extends Simpl
     def +| (e: Edge[V]) : SimpleGraphNeighborsImpl[V] = SimpleGraphNeighborsImpl((neighbors + (e._1->(neighbors(e._1) + e._2)))+(e._2->(neighbors(e._2) + e._1)) )
 
     /** @inheritdoc */
-    def -| (e: Edge[V]) : SimpleGraphNeighborsImpl[V] =SimpleGraphNeighborsImpl((neighbors + (e._1->(neighbors(e._1) - e._2)))+(e._2->(neighbors(e._2) - e._1)) )
+    def -| (e: Edge[V]) : SimpleGraphNeighborsImpl[V] = SimpleGraphNeighborsImpl((neighbors + (e._1->(neighbors(e._1) - e._2)))+(e._2->(neighbors(e._2) - e._1)) )
 
     /** @inheritdoc */
     def withoutEdge : SimpleGraphNeighborsImpl[V] = SimpleGraphNeighborsImpl(
