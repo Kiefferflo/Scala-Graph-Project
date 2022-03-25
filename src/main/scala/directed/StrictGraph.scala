@@ -42,6 +42,11 @@ trait StrictGraph[V] {
             }
     */
 
+    /** The arc with the vertex given as parameters
+     * @param  x1 Begining of the arc
+     * @param x2 End of the arc
+     * @return [[None]] if arc doesn't exist, the arc if it does
+     */
     def getArcFromVertice(x1:V,x2:V): Option[Arc[V]] = arcs.find(x => (x._1==x1) && (x._2==x2))
 
 
@@ -108,8 +113,8 @@ trait StrictGraph[V] {
 
     /* SEARCH METHODS */
 
-    /** A topological order of the vertex set (if exists) */
-        /** L'ordre topologique existe si le classement topologique est de taille egal au nombre de sommets */
+    /** A topological order of the vertex set (if exists)
+     * To know if it exist, we class it, then compare the number of elements */
     lazy val topologicalOrder : Option[Seq[V]] =
         if (topologicalBeginning.size==vertices.size) topologicalBeginning else None
 
@@ -119,6 +124,11 @@ trait StrictGraph[V] {
     // Puis, on cherche ceux dont out ne connecte qu'à ceux en V1,
     // On les stock dans V2. Puis V1=V1+V2, et V2 = Void.
     // On recommance jusqu'à ce que V2 = Void
+
+    /**
+     * Return the topological ordering of the vertices through recursivity
+     * @return
+     */
     def topologicalBeginning: Option[Seq[V]] = {
 
         val myVal = (for (v<-vertices if
@@ -131,10 +141,10 @@ trait StrictGraph[V] {
 
     /**
      *
-     * @param alreadyOrdered Les sommets deja tries
-     * @return L'ensemble des sommets que l'on a reussi a trier
-     * Afin de fonctionner, on cree NouvValTrie, qui correspond aux sommets suivant a ajouter
-     *      Si nouvValTrie est nul, la fonction est finie, sinon, elle "boucle"
+     * @param alreadyOrdered Vertex already sorted
+     * @return Vertex sorted
+     *  To work, we create NouvValTrie, for vertex to add to our sorted pool
+     *  If NouvValTrie is void, then we reached the end
      */
     def topologicalRecursive(alreadyOrdered: Option[Seq[V]]): Option[Seq[V]] = {
         val nouvValTrie = (for (v<-vertices if canAddToTopological(v,alreadyOrdered)) yield v).toSeq
@@ -142,10 +152,10 @@ trait StrictGraph[V] {
     }
 
     /**
-     *
-     * @param v Le sommet a tester
-     * @param option Les sommets deja place dans l'analyse topologique
-     * @return False si on a deja place le sommet, allDestinationsAlreadyCovered sinon
+     * Return if a vertex can be added to the pool of sorted vertex
+     * @param v Vertex to test
+     * @param option Vertex already sorted
+     * @return False if v is in option, else, allDestinationsAlreadyCovered
      */
     def canAddToTopological(v: V, option: Option[Seq[V]]): Boolean = {
         option match {
@@ -156,11 +166,10 @@ trait StrictGraph[V] {
     }
 
     /**
-     *
-     * @param v Le sommet a tester
-     * @param option Les sommets deja tries
-     * @return Retourne vrai si tous les sommets pointes par le sommet a tester
-     *         sont deja tries, faux sinon
+     * Return true if all destinations of v are in vertex
+     * @param v Vertex tested
+     * @param option Pool of sorted vertex
+     * @return Return true if all destinations of v are in vertex
      */
     def allDestinationsAlreadyCovered(v: V, option: Seq[V]): Boolean = {
         val inelegantWay = for (ar<- arcs if ar._1==v) yield option.contains(ar._2)
@@ -175,6 +184,14 @@ trait StrictGraph[V] {
 
     /* VALUATED GRAPH METHODS */
 
+    /**
+     * Dijktra's Map: Map[V,(V,Double)]
+     * x1:V -> (x2:V , d:Double)
+     * x1   : The key, this is the vertex concerned
+     * x2   : What is the previous vertex to use to reach this vertex in the minimum amount distance
+     * d    : Total distance to reach this point from 'start' through x2
+     */
+
     /** Computes a shortest path between two vertices
       * @param valuation valuation of graph
       * @param start origin      of path
@@ -188,12 +205,27 @@ trait StrictGraph[V] {
         } else None
     }
 
-    def readFromEnd(thankYouKieffer: Map[V,(V,Double)],start:V, current:V,accumul:Seq[V]):Seq[V] =
+    /** Computes a shortest path between two vertices
+     * Use recursivity
+     * @param thankYouKieffer valuation of graph
+     * @param start origin      of path
+     * @param end   destination of path
+     * @return [[None]] if there is no path from `start` to `end`, the shortest path and its valuation otherwise
+     */
+    @tailrec final def readFromEnd(thankYouKieffer: Map[V,(V,Double)], start:V, current:V, accumul:Seq[V]):Seq[V] = {
         if (current!=start) readFromEnd(thankYouKieffer,start,
                                         thankYouKieffer(current)._1,
                                         (accumul :+ current))
         else accumul :+ current
+    }
 
+
+    /**
+     * Initialisation to Dijktra's algorithm
+     * @param valuation a map giving the distance of an arc
+     * @param start Where to start Dijktra
+     * @return
+     */
     def initMyCalculation(valuation : Map[Arc[V], Double])(start:V): Map[V,(V,Double)] = {
         MyCalculation(valuation)(
             (vertices foldLeft Map.empty[V,(V,Double)]) {
@@ -204,23 +236,48 @@ trait StrictGraph[V] {
             },start,0.0)
     }
 
-    def MyCalculation(valuation : Map[Arc[V], Double])(accumulationToHere : Map[V,(V,Double)],currentlyAt:V,currentLength:Double) : Map[V,(V,Double)] = {
+    /**
+     * Dijktra's algorithm
+     * @param valuation a map giving the distance of an arc
+     * @param accumulationToHere Dijktra's map (see before) up to this point
+     * @param currentlyAt Where to apply Dijktra
+     * @param currentLength The length from start to here.
+     *                      We could do without by reading from Dijktra's map, but it was hard enough to keep track of everything as is
+     * @return Dijktra's map, possibly improved
+     */
+    final def MyCalculation(valuation : Map[Arc[V], Double])(accumulationToHere : Map[V,(V,Double)], currentlyAt:V, currentLength:Double) : Map[V,(V,Double)] = {
         val MyMap = (accumulationToHere foldLeft Map.empty[V, (V, Double)]) {
             (m, v) =>
-                v._2 match {
+                v._2 match { //Si la longueur enregistree est superieurs a la longueur actuelle
                     case (_, value) if value > valuator(valuation)(currentlyAt, v._1) =>
                         m + (v._1 -> (currentlyAt, currentLength + valuator(valuation)(currentlyAt, v._1)))
                     case _ => m + (v)
                 }
         }
+        // We want to do a 'Deep Search', with "MyMap" being actualised along the way
+        /*
+        (MyMap,successorsOf(currentlyAt)) match {
+            case (y,Some(x)) if (y!=accumulationToHere) =>
+                (x foldLeft MyMap) { (m, suc) => (MyCalculation(valuation)(m, suc, currentLength + valuator(valuation)(currentlyAt, suc)) ) }
+            case (_,_)                                  => MyMap // Doesn't work, to investigate
+        }
+         */
+
         if (MyMap != accumulationToHere)
             successorsOf(currentlyAt) match {
-                case Some(x) => (x foldLeft MyMap) { (m, suc) => MyCalculation(valuation)(m, suc, currentLength + valuator(valuation)(currentlyAt, suc)) }
-                case None => MyMap
+                case None => MyMap //Put in this order so Inteliji won't tell me recursion isn't at the end of the function
+                case Some(x) => (x foldLeft MyMap) { (m, suc) => (MyCalculation(valuation)(m, suc, currentLength + valuator(valuation)(currentlyAt, suc)) ) }
             }
         else MyMap
     }
 
+    /**
+     *
+     * @param valuation The Map giving the length of all arcs
+     * @param x1    Begining of the arc
+     * @param x2    End of the arc
+     * @return      Length of the arc (x1,x2)
+     */
     def valuator(valuation : Map[Arc[V], Double])(x1:V,x2:V): Double = {
         getArcFromVertice(x1, x2) match {
             case None     => 99999999.0
