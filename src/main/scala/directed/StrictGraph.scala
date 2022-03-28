@@ -156,7 +156,6 @@ trait StrictGraph[V] {
      */
     def topologicalRecursive(alreadyOrdered: Seq[V]): Seq[V] = {
         val nouvValTrie = (for (v<-vertices if canAddToTopological(v,alreadyOrdered)) yield v).toSeq
-        println(alreadyOrdered)
         if (nouvValTrie.isEmpty) alreadyOrdered else topologicalRecursive(alreadyOrdered ++ nouvValTrie)
     }
 
