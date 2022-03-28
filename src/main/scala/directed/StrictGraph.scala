@@ -211,7 +211,6 @@ trait StrictGraph[V] {
           case (_,x) if x < 99999.0  => Some((readFromEnd(thankYouKieffer, start, end, Seq.empty[V]),thankYouKieffer(end)._2))
           case _                   => None
         }
-          //Some((readFromEnd(thankYouKieffer, start, end, Seq.empty[V]),thankYouKieffer(end)._2))
       } else None
 
     }
