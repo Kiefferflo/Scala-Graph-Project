@@ -101,7 +101,7 @@ trait SimpleGraph[V] {
       * @param valuation valuation used
       * @return total value of the graph, i.e. sum of values of all edges
       */
-    def value(valuation : Map[Edge[V], Double]) : Double = (edges map { valuation(_) }).sum
+    def value(valuation : Map[Edge[V], Double]) : Double = (edges.toSeq map { valuation(_) }).sum
 
     /** Minimum spanning tree
       * @param valuation valuation used
