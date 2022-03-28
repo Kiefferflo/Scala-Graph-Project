@@ -25,7 +25,7 @@ trait StrictGraph[V] {
       */
     def inDegreeOf(v : V) : Option[Int] =
         if (vertices.contains(v)) Some( // le point entré appartient à la liste des points
-            numberOfArcsByDestination(v) //Check from numberOfArcsByDestination
+            if (numberOfArcsByDestination.contains(v)) numberOfArcsByDestination(v) else 0
 
         ) else None
 
@@ -58,7 +58,7 @@ trait StrictGraph[V] {
       */
     def outDegreeOf(v : V) : Option[Int] =
         if (vertices.contains(v)) Some( // le point entré appartient à la liste des points
-            numberOfArcsByOrigin(v) //Check from numberOfArcsByDestination
+            if (numberOfArcsByOrigin.contains(v)) numberOfArcsByOrigin(v) else 0
         ) else None
 
     /** The number of adjacent vertices to input vertex
@@ -115,8 +115,13 @@ trait StrictGraph[V] {
 
     /** A topological order of the vertex set (if exists)
      * To know if it exist, we class it, then compare the number of elements */
-    lazy val topologicalOrder : Option[Seq[V]] =
-        if (topologicalBeginning.size==vertices.size) topologicalBeginning else None
+    lazy val topologicalOrder : Option[Seq[V]] = {
+        val topo = topologicalBeginning
+        topo match {
+            case Some(x) => if (x.size==vertices.size) Some(x) else None
+            case None => None
+        }
+    }
 
 
     //Créer une fonction recursive: Cherche tous ceux avec out=0
@@ -137,7 +142,9 @@ trait StrictGraph[V] {
               case None => false
         }))
         yield v).toSeq
-        if (myVal==None) None else Some(topologicalRecursive(myVal))
+        if (myVal==None) None else {
+            Some(topologicalRecursive(myVal))
+        }
     }
 
     /**
@@ -149,7 +156,8 @@ trait StrictGraph[V] {
      */
     def topologicalRecursive(alreadyOrdered: Seq[V]): Seq[V] = {
         val nouvValTrie = (for (v<-vertices if canAddToTopological(v,alreadyOrdered)) yield v).toSeq
-        if (nouvValTrie==None) alreadyOrdered else topologicalRecursive(alreadyOrdered ++ nouvValTrie)
+        println(alreadyOrdered)
+        if (nouvValTrie.isEmpty) alreadyOrdered else topologicalRecursive(alreadyOrdered ++ nouvValTrie)
     }
 
     /**
@@ -196,10 +204,15 @@ trait StrictGraph[V] {
       * @return [[None]] if there is no path from `start` to `end`, the shortest path and its valuation otherwise
       */
     def shortestPath(valuation : Map[Arc[V], Double])(start : V, end : V) : Option[(Seq[V], Double)] = {
-        val thankYouKieffer = initMyCalculation(valuation)(start)
-        if (thankYouKieffer contains end) {
-            Some((readFromEnd(thankYouKieffer, start, end, Seq.empty[V]),thankYouKieffer(end)._2))
-        } else None
+      val thankYouKieffer = initMyCalculation(valuation)(start)
+      println(thankYouKieffer)
+      if (thankYouKieffer contains end) {
+        thankYouKieffer(end) match {
+          case (_,x) if x < 99999.0  => Some((readFromEnd(thankYouKieffer, start, end, Seq.empty[V]),thankYouKieffer(end)._2))
+          case _                   => None
+        }
+      } else None
+
     }
 
     /** Computes a shortest path between two vertices
@@ -213,8 +226,8 @@ trait StrictGraph[V] {
     @tailrec final def readFromEnd(thankYouKieffer: Map[V,(V,Double)], start:V, current:V, accumul:Seq[V]):Seq[V] = {
         if (current!=start) readFromEnd(thankYouKieffer,start,
                                         thankYouKieffer(current)._1,
-                                        accumul :+ current)
-        else accumul :+ current
+                                        accumul.+:(current))
+        else accumul.+:(current)
     }
 
 
@@ -244,22 +257,14 @@ trait StrictGraph[V] {
      * @return Dijktra's map, possibly improved
      */
     final def MyCalculation(valuation : Map[Arc[V], Double])(accumulationToHere : Map[V,(V,Double)], currentlyAt:V, currentLength:Double) : Map[V,(V,Double)] = {
-        val MyMap = (accumulationToHere foldLeft Map.empty[V, (V, Double)]) {
-            (m, v) =>
-                v._2 match { //Si la longueur enregistree est superieurs a la longueur actuelle
-                    case (_, value) if value > valuator(valuation)(currentlyAt, v._1) =>
-                        m + (v._1 -> (currentlyAt, currentLength + valuator(valuation)(currentlyAt, v._1)))
-                    case _ => m + v
-                }
-        }
-        // We want to do a 'Deep Search', with "MyMap" being actualised along the way
-        /*
-        (MyMap,successorsOf(currentlyAt)) match {
-            case (y,Some(x)) if (y!=accumulationToHere) =>
-                (x foldLeft MyMap) { (m, suc) => (MyCalculation(valuation)(m, suc, currentLength + valuator(valuation)(currentlyAt, suc)) ) }
-            case (_,_)                                  => MyMap // Doesn't work, to investigate
-        }
-         */
+      val MyMap = (accumulationToHere foldLeft Map.empty[V, (V, Double)]) {
+        (m, v) =>
+          v._2 match { //Si la longueur enregistree est superieurs a la longueur actuelle
+            case (_, value) if value > valuator(valuation)(currentlyAt, v._1) =>
+                m + (v._1 -> (currentlyAt, currentLength + valuator(valuation)(currentlyAt, v._1)))
+            case _ => m + v
+          }
+      }
 
         if (MyMap != accumulationToHere)
             successorsOf(currentlyAt) match {
