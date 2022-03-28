@@ -31,9 +31,9 @@ trait StrictGraph[V] {
 
 
     lazy val numberOfArcsByOrigin : Map[V, Int] =
-        arcs groupBy(_._1) map {case(o->ar) => (o->ar.size)}
+        arcs groupBy(_._1) map {case o->ar => o->ar.size}
     lazy val numberOfArcsByDestination : Map[V, Int] =
-        arcs groupBy(_._2) map {case(d->ar) => (d->ar.size)}
+        arcs groupBy(_._2) map {case d->ar => d->ar.size}
 
     /**
     lazy val myPath : Map[V, V] =
@@ -204,15 +204,16 @@ trait StrictGraph[V] {
 
     /** Computes a shortest path between two vertices
      * Use recursivity
-     * @param thankYouKieffer valuation of graph
+     * @param thankYouKieffer valuation of graph (Dijktra's map)
      * @param start origin      of path
-     * @param end   destination of path
+     * @param current   current point
+     * @param accumul Accumulation to current point
      * @return [[None]] if there is no path from `start` to `end`, the shortest path and its valuation otherwise
      */
     @tailrec final def readFromEnd(thankYouKieffer: Map[V,(V,Double)], start:V, current:V, accumul:Seq[V]):Seq[V] = {
         if (current!=start) readFromEnd(thankYouKieffer,start,
                                         thankYouKieffer(current)._1,
-                                        (accumul :+ current))
+                                        accumul :+ current)
         else accumul :+ current
     }
 
@@ -248,7 +249,7 @@ trait StrictGraph[V] {
                 v._2 match { //Si la longueur enregistree est superieurs a la longueur actuelle
                     case (_, value) if value > valuator(valuation)(currentlyAt, v._1) =>
                         m + (v._1 -> (currentlyAt, currentLength + valuator(valuation)(currentlyAt, v._1)))
-                    case _ => m + (v)
+                    case _ => m + v
                 }
         }
         // We want to do a 'Deep Search', with "MyMap" being actualised along the way
@@ -263,7 +264,7 @@ trait StrictGraph[V] {
         if (MyMap != accumulationToHere)
             successorsOf(currentlyAt) match {
                 case None => MyMap //Put in this order so Inteliji won't tell me recursion isn't at the end of the function
-                case Some(x) => (x foldLeft MyMap) { (m, suc) => (MyCalculation(valuation)(m, suc, currentLength + valuator(valuation)(currentlyAt, suc)) ) }
+                case Some(x) => (x foldLeft MyMap) { (m, suc) => MyCalculation(valuation)(m, suc, currentLength + valuator(valuation)(currentlyAt, suc))  }
             }
         else MyMap
     }
