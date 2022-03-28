@@ -37,7 +37,7 @@ case class SimpleGraphMatrixImpl[V](vs : Seq[V], adjacency : IndexedSeq[IndexedS
             }
 
     /** @inheritdoc */
-    def + (v : V) : SimpleGraphMatrixImpl[V] = SimpleGraphMatrixImpl(vs:+v,adjacency :+ (for(x<-vs:+v) yield 0).toIndexedSeq)
+    def + (v : V) : SimpleGraphMatrixImpl[V] = SimpleGraphMatrixImpl(vs:+v,(adjacency map { _ :+ 0 } ):+ (for(x<-vs:+v) yield 0).toIndexedSeq)
 
     /** @inheritdoc */
     def - (v : V) : SimpleGraphMatrixImpl[V] = SimpleGraphMatrixImpl(vs filterNot {_ == v }, 
