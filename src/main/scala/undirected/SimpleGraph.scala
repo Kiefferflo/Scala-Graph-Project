@@ -32,10 +32,10 @@ trait SimpleGraph[V] {
     def hasPath(v1 : V, v2 : V) : Boolean = ((vertices contains v1) && (vertices contains v2)) && recHasPath(v1,v2,Set(v1))
 
     def recHasPath(v1 : V, v2 : V, fait : Set[V]) : Boolean = (v1 == v2) ||
-        ((neighborsOf(v1) match {
-            case Some(x) => x
-            case None => None
-        }) .iterator.filterNot {fait contains _} foldLeft false) { (b, v) => b || recHasPath(v, v2, fait + v) }
+      (neighborsOf(v1) match {
+            case Some(x) => (x diff fait foldLeft false) { (b, v) => b || recHasPath(v, v2, fait + v) }
+            case None => false
+        })
 
     /** Checks if graph is connected */
     lazy val isConnected : Boolean = (for (x <- vertices; y <- vertices) yield (x,y)) forall { case (x,y) => hasPath(x,y) }
@@ -46,7 +46,7 @@ trait SimpleGraph[V] {
     def recAcyclic(v: V, fait : Set[V], parent : V) : Boolean =
         neighborsOf(v) match {
             case Some(x) => (x filterNot { parent == _ } foldLeft true)
-        { (b,v1) => b && !(fait contains v1) && recAcyclic(v1, fait + v1, v) }
+                { (b,v1) => b && !(fait contains v1) && recAcyclic(v1, fait + v1, v) }
             case None => true
         }
 
@@ -117,7 +117,7 @@ trait SimpleGraph[V] {
     /** Sequence of vertices sorted by decreasing degree */
     lazy val sortedVertices : Seq[V] = (vertices.toSeq sortBy degreeOf).reverse
 
-    def whichColor(m : Map[V, Int], v : V) : Int = ((m filter { neighborsOf(v) contains _ }).values.toSeq.sorted
+    def whichColor(m : Map[V, Int], v : V) : Int = ((m filter { neighborsOf(v).get contains _._1 }).values
       foldLeft 0) {(i,n) => if (i == n) {i+1} else i }
 
     /** Proper coloring using greedy algorithm (a.k.a WELSH-POWELL) */
@@ -131,14 +131,14 @@ trait SimpleGraph[V] {
     else
         recDSATUR(
             colore + ((v, whichColor(colore,v))),
-            sortedVertices filterNot { colore contains _ } maxBy { DSAT(colore,_) }
+            sortedVertices filterNot {colore contains _} maxBy { DSAT(colore,_) }
         )
 
-    def DSAT(colore : Map[V, Int], v : V) : Int = ((neighborsOf(v) match {
-        case Some(x) => x
-        case None => None
-    }) .iterator.filter { colore contains _ } .toSeq.groupMapReduce(identity) { _ => 1 } { _ + _ }
-      foldLeft 0) { (i, p) => i + p._2 }
+    def DSAT(colore : Map[V, Int], v : V) : Int = neighborsOf(v) match {
+        case Some(x) => (((x filter { colore contains _ }) groupMapReduce identity) { _ => 1 } { _ + _ }
+            foldLeft 0) { (i, p) => i + p._2 }
+        case None => 0
+    }
 
     /* toString-LIKE METHODS */
 

@@ -131,12 +131,13 @@ trait StrictGraph[V] {
      */
     def topologicalBeginning: Option[Seq[V]] = {
 
-        val myVal = (for (v<-vertices if
-          (outDegreeOf(v) match {
+        val myVal = (for (v<-vertices if (outDegreeOf(v) match {
               case Some(x) if x== 0=> true
-              case Some(x) if x!= 0=> false
-              case None => false })) yield v).toSeq
-        if (myVal==None) None else topologicalRecursive(Some(myVal))
+              case Some(_) => false
+              case None => false
+        }))
+        yield v).toSeq
+        if (myVal==None) None else Some(topologicalRecursive(myVal))
     }
 
     /**
@@ -146,23 +147,19 @@ trait StrictGraph[V] {
      *  To work, we create NouvValTrie, for vertex to add to our sorted pool
      *  If NouvValTrie is void, then we reached the end
      */
-    def topologicalRecursive(alreadyOrdered: Option[Seq[V]]): Option[Seq[V]] = {
+    def topologicalRecursive(alreadyOrdered: Seq[V]): Seq[V] = {
         val nouvValTrie = (for (v<-vertices if canAddToTopological(v,alreadyOrdered)) yield v).toSeq
-        if (nouvValTrie==None) alreadyOrdered else topologicalRecursive(alreadyOrdered+nouvValTrie)
+        if (nouvValTrie==None) alreadyOrdered else topologicalRecursive(alreadyOrdered ++ nouvValTrie)
     }
 
     /**
      * Return if a vertex can be added to the pool of sorted vertex
      * @param v Vertex to test
-     * @param option Vertex already sorted
+     * @param x Vertex already sorted
      * @return False if v is in option, else, allDestinationsAlreadyCovered
      */
-    def canAddToTopological(v: V, option: Option[Seq[V]]): Boolean = {
-        option match {
-            case Some(x) => if (x.contains(v)) false else allDestinationsAlreadyCovered(v, x)
-            case None => false
-        }
-
+    def canAddToTopological(v: V, x: Seq[V]): Boolean = {
+        if (x contains v) false else allDestinationsAlreadyCovered(v, x)
     }
 
     /**
