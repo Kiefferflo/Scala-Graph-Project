@@ -27,7 +27,7 @@ case class StrictGraphMatrixImpl[V](vs : Seq[V], adjacency : IndexedSeq[IndexedS
     }
 
     /** @inheritdoc */
-    def + (v : V) : StrictGraphMatrixImpl[V] = StrictGraphMatrixImpl(vs :+ v, adjacency)
+    def + (v : V) : StrictGraphMatrixImpl[V] = StrictGraphMatrixImpl(vs :+ v, (adjacency map { _ :+ 0 } ):+ (for(x<-vs:+v) yield 0).toIndexedSeq)
 
     /** @inheritdoc */
     def - (v : V) : StrictGraphMatrixImpl[V] = StrictGraphMatrixImpl(vs filterNot { _ == v },
