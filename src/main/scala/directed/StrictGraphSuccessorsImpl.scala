@@ -30,7 +30,9 @@ case class StrictGraphSuccessorsImpl[V](successors : Map[V, Set[V]]) extends Str
     def + (v : V) : StrictGraphSuccessorsImpl[V] = StrictGraphSuccessorsImpl(successors + (v->Set.empty[V]))
 
     /** @inheritdoc */
-    def - (v : V) : StrictGraphSuccessorsImpl[V] = StrictGraphSuccessorsImpl(successors - v)
+    def - (v : V) : StrictGraphSuccessorsImpl[V] = StrictGraphSuccessorsImpl(((successors - v) foldLeft Map.empty[V,Set[V]]) {
+        (map, pair) => map + (pair._1 -> (pair._2 - v))
+    })
 
     /** @inheritdoc */
     def +| (e: Arc[V]) : StrictGraphSuccessorsImpl[V] = StrictGraphSuccessorsImpl(

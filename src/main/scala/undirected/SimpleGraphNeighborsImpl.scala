@@ -29,8 +29,15 @@ case class SimpleGraphNeighborsImpl[V](neighbors : Map[V, Set[V]]) extends Simpl
     /** @inheritdoc */
     def + (v : V) : SimpleGraphNeighborsImpl[V] =  SimpleGraphNeighborsImpl(neighbors + (v->Set.empty[V]))
 
+    def parcoursMap[V1,V2](map : Map[V1,V2]) (f : (Map[V1,V2],(V1,V2)) => Map[V1,V2]) : Map[V1,V2] = {
+      (map foldLeft Map.empty[V1,V2]) {f}
+    }
+
     /** @inheritdoc */
-    def - (v : V) : SimpleGraphNeighborsImpl[V] = SimpleGraphNeighborsImpl(neighbors - v)
+    def - (v : V) : SimpleGraphNeighborsImpl[V] = SimpleGraphNeighborsImpl(parcoursMap(neighbors - v)
+    {
+      (map, pair) => map + (pair._1 -> (pair._2 - v))
+    })
 
     /** @inheritdoc */
     def +| (e: Edge[V]) : SimpleGraphNeighborsImpl[V] = SimpleGraphNeighborsImpl((neighbors + (e._1->(neighbors(e._1) + e._2)))+(e._2->(neighbors(e._2) + e._1)) )
@@ -38,9 +45,10 @@ case class SimpleGraphNeighborsImpl[V](neighbors : Map[V, Set[V]]) extends Simpl
     /** @inheritdoc */
     def -| (e: Edge[V]) : SimpleGraphNeighborsImpl[V] = SimpleGraphNeighborsImpl((neighbors + (e._1->(neighbors(e._1) - e._2)))+(e._2->(neighbors(e._2) - e._1)) )
 
+
     /** @inheritdoc */
     def withoutEdge : SimpleGraphNeighborsImpl[V] = SimpleGraphNeighborsImpl(
-    (neighbors foldLeft Map.empty[V,Set[V]])
+    parcoursMap (neighbors)
     {
       (m,p)=>m+ (p._1->Set.empty[V])
     }
@@ -48,7 +56,7 @@ case class SimpleGraphNeighborsImpl[V](neighbors : Map[V, Set[V]]) extends Simpl
 
     /** @inheritdoc */
     def withAllEdges : SimpleGraphNeighborsImpl[V] = SimpleGraphNeighborsImpl(
-    (neighbors foldLeft Map.empty[V,Set[V]])
+    parcoursMap (neighbors)
     {
       (m,p)=>m+ (p._1->vertices)
     }
