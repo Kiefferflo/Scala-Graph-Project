@@ -8,7 +8,7 @@ package undirected
 case class SimpleGraphNeighborsImpl[V](neighbors : Map[V, Set[V]]) extends SimpleGraph[V] {
 
     /** @inheritdoc */
-    val vertices : Set[V] = neighbors.keySet
+    val vertices : Set[V] = neighbors.keySet ++ neighbors.values.flatten
 
     /** @inheritdoc */
     val edges : Set[Edge[V]] = (neighbors foldLeft {Set.empty[Edge[V]]})

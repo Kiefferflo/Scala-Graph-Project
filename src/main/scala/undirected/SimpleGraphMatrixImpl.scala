@@ -41,7 +41,7 @@ case class SimpleGraphMatrixImpl[V](vs : Seq[V], adjacency : IndexedSeq[IndexedS
 
     /** @inheritdoc */
     def - (v : V) : SimpleGraphMatrixImpl[V] = SimpleGraphMatrixImpl(vs filterNot {_ == v }, 
-      (adjacency splitAt(vs indexOf v) 
+      (adjacency splitAt(vs indexOf v)
         match { 
           case(x,y)=> x :++(y drop 1)
       })

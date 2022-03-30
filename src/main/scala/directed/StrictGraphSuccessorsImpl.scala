@@ -8,7 +8,7 @@ package directed
 case class StrictGraphSuccessorsImpl[V](successors : Map[V, Set[V]]) extends StrictGraph[V] {
 
     /** @inheritdoc */
-    val vertices : Set[V] = successors.keySet
+    val vertices : Set[V] = successors.keySet ++ successors.values.flatten
 
     /** @inheritdoc */
     val arcs : Set[Arc[V]] = (successors foldLeft {Set.empty[Arc[V]]})
