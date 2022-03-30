@@ -1,0 +1,4 @@
+[0m[[0m[31merror[0m] [0m[0m/home/cytech/scala-graph-project/src/main/scala/applications/MainGPS.scala.scala:3:8: MainFileRead is already defined as object MainFileRead[0m
+[0m[[0m[31merror[0m] [0m[0mobject MainFileRead {[0m
+[0m[[0m[31merror[0m] [0m[0m       ^[0m
+[0m[[0m[31merror[0m] [0m[0mone error found[0m
