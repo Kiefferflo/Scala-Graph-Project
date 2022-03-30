@@ -1,0 +1,7 @@
+[0m[[0m[33mwarn[0m] [0m[0m/home/cytech/scala-graph-project/src/main/scala/undirected/Test.scala:4:9: not a valid main method for undirected.Test,[0m
+[0m[[0m[33mwarn[0m] [0m[0m  because main methods must have the exact signature `(Array[String]): Unit`, though Scala runners will forgive a non-Unit result.[0m
+[0m[[0m[33mwarn[0m] [0m[0m  To define an entry point, please define the main method as:[0m
+[0m[[0m[33mwarn[0m] [0m[0m    def main(args: Array[String]): Unit[0m
+[0m[[0m[33mwarn[0m] [0m[0m    def main(args: Array[String]) = {[0m
+[0m[[0m[33mwarn[0m] [0m[0m        ^[0m
+[0m[[0m[33mwarn[0m] [0m[0mone warning found[0m

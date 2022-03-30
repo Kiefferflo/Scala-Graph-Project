@@ -1,0 +1,4 @@
+[debug] [scala-graph-project-test] Classpath dependencies List()
+[debug] [scala-graph-project-test] Dependencies from configurations List(scala-graph-project)
+[debug] Bloop wrote the configuration of project 'scala-graph-project-test' to '/home/cytech/scala-graph-project/.bloop/scala-graph-project-test.json'
+[success] Generated .bloop/scala-graph-project-test.json

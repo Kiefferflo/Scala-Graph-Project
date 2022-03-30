@@ -23,7 +23,7 @@ case class SimpleGraphNeighborsImpl[V](neighbors : Map[V, Set[V]]) extends Simpl
     def neighborsOf(v: V) : Option[Set[V]] = neighbors(v) match
        { 
       case x if x.nonEmpty=> Some(x)
-      case _ => None
+      case _ => None        
     }
 
     /** @inheritdoc */
