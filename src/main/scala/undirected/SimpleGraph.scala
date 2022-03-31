@@ -41,7 +41,7 @@ trait SimpleGraph[V] {
     lazy val isConnected : Boolean = (for (x <- vertices; y <- vertices) yield (x,y)) forall { case (x,y) => hasPath(x,y) }
 
     /** Checks if graph is acyclic */
-    lazy val isAcyclic : Boolean = (vertices foldLeft true) { (b,v) => b && recAcyclic(v, Set(v), v) }
+    lazy val isAcyclic : Boolean = vertices forall { v => recAcyclic(v, Set(v), v) }
 
     def recAcyclic(v: V, fait : Set[V], parent : V) : Boolean =
         neighborsOf(v) match {

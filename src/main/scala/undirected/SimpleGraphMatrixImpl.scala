@@ -67,7 +67,7 @@ case class SimpleGraphMatrixImpl[V](vs : Seq[V], adjacency : IndexedSeq[IndexedS
     })
 
     /** @inheritdoc */
-    def -| (e : Edge[V]) : SimpleGraphMatrixImpl[V] =SimpleGraphMatrixImpl(
+    def -| (e : Edge[V]) : SimpleGraphMatrixImpl[V] = SimpleGraphMatrixImpl(
     vs,(adjacency.zipWithIndex foldLeft IndexedSeq.empty[IndexedSeq[Int]]) {
     (adj,a)=> adj :+ 
       (if (vs(a._2)==e._1) 
