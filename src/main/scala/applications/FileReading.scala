@@ -38,6 +38,7 @@ case class FileReading(val FileName: String) {
     }
   }*/
 
-  def calculDistance(long1:Int, lat1:Int) (long2:Int,lat2:Int) : Double = ???
+  def calculDistance(long1_dg:Int, long1_mn: Int, long1_sc:Int, long1_ns: String, lat1_dg:Int, lat1_mn: Int, lat1_sc:Int, lat1_ew: String)
+                    (long2_dg:Int, long2_mn: Int, long2_sc:Int, long2_ns: String, lat2_dg:Int, lat2_mn: Int, lat2_sc:Int, lat2_ew: String) : Double = ???
   lazy val GPSProcessor : (StrictGraph[String], Map[Arc[String], Double]) = ???
 }
