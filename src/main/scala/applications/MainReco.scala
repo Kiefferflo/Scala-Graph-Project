@@ -5,6 +5,6 @@ object MainReco {
     val nonInter = args(1).toDouble
     val INSEE = args(2).toInt
     val (graph,value) = FileReading("./src/main/resources/antennes.csv").AntenneProcessorWithDistance(nonInter,INSEE)
-    println(graph.minimumSpanningTree(value))
+    println(graph.minimumSpanningTree(value)) //TODO meilleur affichage (dot string ?)
   }
 }

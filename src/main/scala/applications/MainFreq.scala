@@ -5,6 +5,6 @@ object MainFreq {
     val nonInter = args(1).toDouble
     val INSEE = args(2).toInt
     val graph = FileReading("./src/main/resources/antennes.csv").AntenneProcessor(nonInter,INSEE)
-    println(graph.greedyColoring)
+    println(graph.greedyColoring) //TODO meilleur affichage (dot string ?)
   }
 }
