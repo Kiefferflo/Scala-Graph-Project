@@ -113,6 +113,13 @@ trait StrictGraph[V] {
 
     /* SEARCH METHODS */
 
+    lazy val isCyclic: Boolean = {
+        topologicalOrder match {
+            case None => true
+            case _ => false
+        }
+    }
+
     /** A topological order of the vertex set (if exists)
      * To know if it exist, we class it, then compare the number of elements */
     lazy val topologicalOrder : Option[Seq[V]] = {
