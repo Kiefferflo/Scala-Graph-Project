@@ -21,25 +21,29 @@ case class FileReading(val FileName: String) {
 
   def AntenneProcessor(nonInter : Double, INSEE: Int) : SimpleGraph[String] = AntenneProcessorWithDistance(nonInter,INSEE)._1
 
-  def AntenneProcessorWithDistance(nonInter: Double, INSEE : Int) : (SimpleGraph[String], Map[Edge[String], Double]) = ???
-  /*{
-    (read foldLeft (Map.empty[String, Set[String]], Map.empty[Edge[String], Double], Map.empty[String, (Int,Int)])) {
-      (tuple3,line) => {
+  def AntenneProcessorWithDistance(nonInter: Double, INSEE : Int) : (SimpleGraph[String], Map[Edge[String], Double]) =
+  {
+    val tuple3 = (read foldLeft (Map.empty[String, Set[String]], Map.empty[Edge[String], Double], Map.empty[String, (Int,Int,Int,String,Int,Int,Int,String)])) {
+      (tuple3tmp,line) => {
         val antenne = line split ";"
-        if (antenne(14).toInt == INSEE) (tuple3._3 foldLeft tuple3) {
-          (tuple3bis, pair) => (
-            tuple3bis._1 match {
-              case x if
-            },
-            tuple3bis._2,
-            tuple3bis._3)
-        } else tuple3
+        if (antenne(14).toInt == INSEE) (tuple3tmp._3 foldLeft (tuple3tmp._1 + (antenne(0) -> Set.empty[String]),tuple3tmp._2,tuple3tmp._3)) {
+          (tuple3tmpbis, pair) =>
+            val longAndLat = (antenne(3).toInt,antenne(4).toInt,antenne(5).toInt,antenne(6),antenne(7).toInt,antenne(8).toInt,antenne(9).toInt,antenne(10))
+            if (calculDistance(pair._2)(longAndLat) < nonInter)
+              (tuple3tmpbis._1 + (antenne(0) -> (tuple3tmpbis._1(antenne(0)) + pair._1)),
+              tuple3tmpbis._2 + (Edge(antenne(0),pair._1) -> calculDistance(pair._2)(longAndLat)),
+              tuple3tmpbis._3 + (antenne(0) -> longAndLat)
+              )
+            else tuple3tmpbis
+        } else tuple3tmp
       }
     }
-  }*/
 
-  def calculDistance(long1_dg:Int, long1_mn: Int, long1_sc:Int, long1_ns: String, lat1_dg:Int, lat1_mn: Int, lat1_sc:Int, lat1_ew: String)
-                    (long2_dg:Int, long2_mn: Int, long2_sc:Int, long2_ns: String, lat2_dg:Int, lat2_mn: Int, lat2_sc:Int, lat2_ew: String) : Double = ???
+    (SimpleGraphNeighborsImpl(tuple3._1), tuple3._2)
+  }
+
+  def calculDistance(longAndLat1:(Int,Int,Int,String,Int,Int,Int,String))
+                    (longAndLat2:(Int,Int,Int,String,Int,Int,Int,String)) : Double = ???
 
   lazy val GPSGraph : StrictGraphSuccessorsImpl[String] = {
     val succ = (read foldLeft Map.empty[String,Set[String]]) {
