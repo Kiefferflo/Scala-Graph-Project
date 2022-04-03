@@ -112,14 +112,16 @@ trait SimpleGraph[V] {
     lazy val sortedVertices : Seq[V] = (vertices.toSeq sortBy degreeOf).reverse
 
     def whichColor(m : Map[V, Int], v : V) : Int = {
-        ((m filter { (neighborsOf(v) getOrElse Set.empty[V]) contains _._1 }).values
-      foldLeft 0) {(i,n) =>
-        if (i == n) {i+1} else i }
+        (m filter { (neighborsOf(v) getOrElse Set.empty[V]) contains _._1 }).values match {
+            case x if x.nonEmpty => x.max + 1
+            case _ => 0
+        }
     }
 
     /** Proper coloring using greedy algorithm (a.k.a WELSH-POWELL) */
     lazy val greedyColoring : Map[V, Int] = (sortedVertices foldLeft Map.empty[V, Int]) {
-        (m,v) => m + ((v, whichColor(m,v))) }
+        (m,v) =>
+            m + ((v, whichColor(m,v))) }
 
     /** Proper coloring using DSATUR algorithm */
     lazy val coloringDSATUR : Map[V, Int] = recDSATUR(Map((sortedVertices.head, 1)), sortedVertices.head)

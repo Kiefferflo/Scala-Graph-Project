@@ -36,7 +36,7 @@ case class FileReading(FileName: String) {
     val antenne = line split ";"
     if (antenne.length == 15 && antenne(14) == INSEE) {
       val longAndLat = (antenne(3).toInt, antenne(4).toInt, antenne(5).toInt, antenne(6), antenne(7).toInt, antenne(8).toInt, antenne(9).toInt, antenne(10))
-      (tuple3._3 foldLeft (tuple3._1 + (antenne(0) + ";" + antenne(1) -> Set.empty[String]), tuple3._2, tuple3._3 + (antenne(0) + ";" + antenne(1) -> longAndLat))) {
+      (tuple3._3 foldLeft (tuple3._1 + (antenne(0) + antenne(1) -> Set.empty[String]), tuple3._2, tuple3._3 + (antenne(0) + antenne(1) -> longAndLat))) {
         AntenneProcessorAntenneByAntenne(nonInter, antenne)(longAndLat)(_, _)
       }
     } else tuple3
@@ -50,9 +50,9 @@ case class FileReading(FileName: String) {
     val distance = calculDistance(pair._2,longAndLat)
     if (distance < nonInter)
       (
-        (tuple3._1 + ((antenne(0) + ";" + antenne(1)) -> (tuple3._1(antenne(0) + ";" + antenne(1)) + pair._1)))
-          + (pair._1 -> (tuple3._1(pair._1) + (antenne(0) + ";" + antenne(1)))),
-        tuple3._2 + (Edge(antenne(0) + ";" + antenne(1),pair._1) -> distance),
+        (tuple3._1 + ((antenne(0) + antenne(1)) -> (tuple3._1(antenne(0)  + antenne(1)) + pair._1)))
+          + (pair._1 -> (tuple3._1(pair._1) + (antenne(0)  + antenne(1)))),
+        tuple3._2 + (Edge(antenne(0) + antenne(1),pair._1) -> distance),
         tuple3._3
       )
     else tuple3
@@ -93,10 +93,10 @@ case class FileReading(FileName: String) {
     val myTuple = (GPSGraphFirstDecomposition foldLeft (Set.empty[Arc[String]], Map.empty[Arc[String],Double],
           Map.empty[Arc[String],Double],Set.empty[String] ) ) {
       (truple, nextElement) => {
-        val worksvp = ( (truple._1 + nextElement._1 ) , // Problem TOD O //Remember: this work if you begin to ask why it doesn't
+        val worksvp = ( truple._1 + nextElement._1, // Problem TOD O //Remember: this work if you begin to ask why it doesn't
         truple._2 + (nextElement._1 -> nextElement._2._1),
         truple._3 + (nextElement._1 -> nextElement._2._2),
-        (truple._4.+(nextElement._1._1)).+(nextElement._1._2) )
+        truple._4.+(nextElement._1._1).+(nextElement._1._2) )
         worksvp //Don't ask why, the compilator consider this a Map[String,Double] if I don't make it a val
       }
     }

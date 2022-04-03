@@ -1,5 +1,4 @@
 package applications
-import java.nio.file.Paths
 
 object MainMake {
   def main(args: Array[String]): Unit = {
