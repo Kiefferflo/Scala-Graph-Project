@@ -1,4 +1,4 @@
-ville1; ville2| 5 | 8; ville4| 7 | 9; ville5| 12 | 19
-ville2; ville3| 1 | 1
-ville3; ville4| 2 | 1; ville5| 12 | 21
-ville4; ville5| 23 | 1
+ville1;ville2:5:8;ville4:7:9;ville5:122:129;
+ville2;ville3:1:1;
+ville3;ville4:2:1;ville5:12:21;
+ville4;ville5:23:1;
