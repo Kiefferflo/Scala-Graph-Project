@@ -22,7 +22,7 @@ case class StrictGraphSuccessorsImpl[V](successors : Map[V, Set[V]]) extends Str
     /** @inheritdoc */
     def successorsOf(v: V) : Option[Set[V]] = successors(v) match
     {
-        case x if x.nonEmpty=> Some(x)
+        case x if x != None => Some(x)
         case _ => None
     }
 
