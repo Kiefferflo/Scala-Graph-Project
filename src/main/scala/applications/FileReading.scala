@@ -79,14 +79,74 @@ case class FileReading(FileName: String) {
 
   lazy val GPSGraph : StrictGraphSuccessorsImpl[String] = {
     val succ = (read foldLeft Map.empty[String,Set[String]]) {
-      (map, str) => map + (str split " (?:: )?" match {
-        // v: v| d | t: v| d | t: v| d | t: v| d | t: v| d | t
+      (map, str) => map + (str split " (?:; )?" match {
+        // v; v| d | t; v| d | t; v| d | t; v| d | t; v| d | t
         case x => x.head->{ for (e<-x.tail) yield (e split " (?:| )?")(0) }.toSet })
     }
     StrictGraphSuccessorsImpl(succ)
   }
 
+  /*
+  lazy val GPSGraph2 : Map[Arc[String], (Double,Double)] = {
+    val succ = (read foldLeft Map.empty[Arc[String], (Double,Double)]) {
+      (map, str) => map + str split " (?:; )?" match {
+        // v; v| d | t; v| d | t; v| d | t; v| d | t; v| d | t
+        case x => {
+          for (e<-x.tail) yield (Arc(x.head,(e split " (?:| )?")(0)),
+            ((e split " (?:| )?")(1).toDouble,(e split " (?:| )?")(2).toDouble) ) }.toSet
+      }
+    }
+    succ
+  }
+
+   */
+
+  lazy val GPSGraphFirstDecomposition : Set[(Arc[String], (Double,Double))] = {
+    val succ = (read foldLeft Set.empty[(Arc[String], (Double,Double))]) {
+      (map, str) => map + str split " (?:; )?" match {
+        // v; v| d | t; v| d | t; v| d | t; v| d | t; v| d | t
+        case x => {
+          for (e<-x.tail) yield (Arc(x.head,(e split " (?:| )?")(0)),
+            ((e split " (?:| )?")(1).toDouble,(e split " (?:| )?")(2).toDouble) ) }.toSet
+      }
+    }
+    succ
+  } // Retourne un set de tuple qui contient un arc associe a sa distance et son temps
+
+  lazy val GPSGraphSecond : ( StrictGraph[String],Map[Arc[String], Double],Map[Arc[String], Double] ) = {
+    val succ = (GPSGraphFirstDecomposition foldLeft (StrictGraphDefaultImpl[String], Map.empty[Arc[String],Double],Map.empty[Arc[String],Double] ) ) {
+      (truple, nextElement) => {
+        val current_arc = nextElement._1
+        val current_distance = nextElement._2._1
+        val current_temps= nextElement._2._2
+        ( (truple._1.apply().+|(nextElement._1) ), //Problem TODO
+        (truple._2 + (current_arc -> current_distance)),
+        (truple._3 + (current_arc -> current_temps)))
+      }
+    }
+    succ
+  }
+
   lazy val GPSMapOfDistance : Map[Arc[String], Double] = ???
+  /*
+  lazy val GPSMapOfDistance : Map[Arc[String], Double] = {
+    val myMap = (read foldLeft Map.empty[Arc[String], Double]) {
+      (map, str) =>
+        map + (str split " (?:: )?" match {
+          // v: v| d | t: v| d | t: v| d | t: v| d | t: v| d | t
+          case x => {
+            for (e <- x.tail) yield (
+              (GPSGraph.getArcFromVertice(x.head, e split " (?:| )?"(0))) match {
+              Some (arc_i) => (arc_i -> e split " (?:| )?" (1) )
+              }
+              )
+          }.toSet
+        })
+    }
+    myMap
+  }
+  */
+
   lazy val GPSMapOfTime : Map[Arc[String], Double] = ???
   lazy val GPSProcessor : (StrictGraph[String],Map[Arc[String], Double],Map[Arc[String], Double]) = {
     //cle: sommet: valeur
