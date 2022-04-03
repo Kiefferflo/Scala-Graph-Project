@@ -34,22 +34,26 @@ case class FileReading(FileName: String) {
     Map[String, (Int, Int, Int, String, Int, Int, Int, String)]), line : String) :
   (Map[String, Set[String]], Map[Edge[String], Double], Map[String, (Int, Int, Int, String, Int, Int, Int, String)]) = {
     val antenne = line split ";"
-    if (antenne.length == 15 && antenne(14) == INSEE) (tuple3._3 foldLeft (tuple3._1 + (antenne(0) + ";" + antenne(1) -> Set.empty[String]),tuple3._2,tuple3._3)) {
-      AntenneProcessorAntenneByAntenne(nonInter, antenne)(_, _)
+    if (antenne.length == 15 && antenne(14) == INSEE) {
+      val longAndLat = (antenne(3).toInt, antenne(4).toInt, antenne(5).toInt, antenne(6), antenne(7).toInt, antenne(8).toInt, antenne(9).toInt, antenne(10))
+      (tuple3._3 foldLeft (tuple3._1 + (antenne(0) + ";" + antenne(1) -> Set.empty[String]), tuple3._2, tuple3._3 + (antenne(0) + ";" + antenne(1) -> longAndLat))) {
+        AntenneProcessorAntenneByAntenne(nonInter, antenne)(longAndLat)(_, _)
+      }
     } else tuple3
   }
 
   def AntenneProcessorAntenneByAntenne(nonInter: Double, antenne: Array[String])
+                                      (longAndLat : (Int,Int,Int,String,Int,Int,Int,String))
                                       (tuple3: (Map[String, Set[String]], Map[Edge[String], Double], Map[String, (Int, Int, Int, String, Int, Int, Int, String)]),
-                                       pair: (String, (Int, Int, Int, String, Int, Int, Int, String))) :
-  (Map[String, Set[String]], Map[Edge[String], Double], Map[String, (Int, Int, Int, String, Int, Int, Int, String)]) = {
-    val longAndLat = (antenne(3).toInt,antenne(4).toInt,antenne(5).toInt,antenne(6),antenne(7).toInt,antenne(8).toInt,antenne(9).toInt,antenne(10))
+                                       pair: (String, (Int, Int, Int, String, Int, Int, Int, String)))
+  : (Map[String, Set[String]], Map[Edge[String], Double], Map[String, (Int, Int, Int, String, Int, Int, Int, String)]) = {
     val distance = calculDistance(pair._2,longAndLat)
-    if ( distance < nonInter)
+    if (distance < nonInter)
       (
-        tuple3._1 + (antenne(0) + ";" + antenne(1) -> (tuple3._1(antenne(0) + ";" + antenne(1)) + pair._1)),
+        (tuple3._1 + ((antenne(0) + ";" + antenne(1)) -> (tuple3._1(antenne(0) + ";" + antenne(1)) + pair._1)))
+          + (pair._1 -> (tuple3._1(pair._1) + (antenne(0) + ";" + antenne(1)))),
         tuple3._2 + (Edge(antenne(0) + ";" + antenne(1),pair._1) -> distance),
-        tuple3._3 + (antenne(0) + ";" + antenne(1) -> longAndLat)
+        tuple3._3
       )
     else tuple3
   }
