@@ -102,7 +102,7 @@ trait SimpleGraph[V] {
       * @return a spanning tree whose value is minimal
       */
     def minimumSpanningTree(valuation : Map[Edge[V], Double]) : SimpleGraph[V] = ((edges.toSeq sortBy valuation)
-      foldLeft this.withoutEdge) {
+      foldLeft withoutEdge) {
         (s,e) => if ((s +| e).isAcyclic) {s +| e} else s
     }
 
