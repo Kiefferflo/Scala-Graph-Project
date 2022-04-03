@@ -3,7 +3,6 @@ package applications
 import directed._
 import undirected._
 
-
 import scala.io.Source
 import scala.math.{Pi, asin, cos, pow, sin, sqrt}
 
@@ -20,22 +19,22 @@ case class FileReading(FileName: String) {
     StrictGraphSuccessorsImpl(succ)
   }
 
-  def AntenneProcessor(nonInter : Double, INSEE: Int) : SimpleGraph[String] = AntenneProcessorWithDistance(nonInter,INSEE)._1
+  def AntenneProcessor(nonInter : Double, INSEE: String) : SimpleGraph[String] = AntenneProcessorWithDistance(nonInter,INSEE)._1
 
-  def AntenneProcessorWithDistance(nonInter: Double, INSEE : Int) : (SimpleGraph[String], Map[Edge[String], Double]) =
+  def AntenneProcessorWithDistance(nonInter: Double, INSEE : String) : (SimpleGraph[String], Map[Edge[String], Double]) =
   {
-    val tuple3 = (read foldLeft (Map.empty[String, Set[String]], Map.empty[Edge[String], Double], Map.empty[String, (Int,Int,Int,String,Int,Int,Int,String)])) {
+    val tuple3 = (read drop 1 foldLeft (Map.empty[String, Set[String]], Map.empty[Edge[String], Double], Map.empty[String, (Int,Int,Int,String,Int,Int,Int,String)])) {
       AntenneProcessorOneLigne(nonInter, INSEE)(_,_)
     }
 
     (SimpleGraphNeighborsImpl(tuple3._1), tuple3._2)
   }
 
-  def AntenneProcessorOneLigne(nonInter : Double, INSEE: Int)(tuple3: (Map[String, Set[String]], Map[Edge[String], Double],
+  def AntenneProcessorOneLigne(nonInter : Double, INSEE: String)(tuple3: (Map[String, Set[String]], Map[Edge[String], Double],
     Map[String, (Int, Int, Int, String, Int, Int, Int, String)]), line : String) :
   (Map[String, Set[String]], Map[Edge[String], Double], Map[String, (Int, Int, Int, String, Int, Int, Int, String)]) = {
     val antenne = line split ";"
-    if (antenne(14).toInt == INSEE) (tuple3._3 foldLeft (tuple3._1 + (antenne(0) -> Set.empty[String]),tuple3._2,tuple3._3)) {
+    if (antenne.length == 15 && antenne(14) == INSEE) (tuple3._3 foldLeft (tuple3._1 + (antenne(0) + ";" + antenne(1) -> Set.empty[String]),tuple3._2,tuple3._3)) {
       AntenneProcessorAntenneByAntenne(nonInter, antenne)(_, _)
     } else tuple3
   }
@@ -48,9 +47,9 @@ case class FileReading(FileName: String) {
     val distance = calculDistance(pair._2,longAndLat)
     if ( distance < nonInter)
       (
-        tuple3._1 + (antenne(0) -> (tuple3._1(antenne(0)) + pair._1)),
-        tuple3._2 + (Edge(antenne(0),pair._1) -> distance),
-        tuple3._3 + (antenne(0) -> longAndLat)
+        tuple3._1 + (antenne(0) + ";" + antenne(1) -> (tuple3._1(antenne(0) + ";" + antenne(1)) + pair._1)),
+        tuple3._2 + (Edge(antenne(0) + ";" + antenne(1),pair._1) -> distance),
+        tuple3._3 + (antenne(0) + ";" + antenne(1) -> longAndLat)
       )
     else tuple3
   }
