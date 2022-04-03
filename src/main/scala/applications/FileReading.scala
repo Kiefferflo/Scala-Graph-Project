@@ -77,20 +77,35 @@ case class FileReading(FileName: String) {
     R * c
   }
 
-  lazy val GPSGraph : StrictGraphSuccessorsImpl[String] = {
-    val succ = (read foldLeft Map.empty[String,Set[String]]) {
-      (map, str) => map + (str split " (?:: )?" match {
-        // v: v| d | t: v| d | t: v| d | t: v| d | t: v| d | t
-        case x => x.head->{ for (e<-x.tail) yield (e split " (?:| )?")(0) }.toSet })
+  lazy val GPSGraphFirstDecomposition : Set[(Arc[String], (Double,Double))] = {
+    val succ = (read foldLeft Set.empty[(Arc[String], (Double,Double))]) {
+      (map, str) => map + str split " (?:; )?" match {
+        // v; v| d | t; v| d | t; v| d | t; v| d | t; v| d | t
+        case x => {
+          for (e<-x.tail) yield (Arc(x.head,(e split " (?:| )?")(0)),
+            ((e split " (?:| )?")(1).toDouble,(e split " (?:| )?")(2).toDouble) ) }.toSet
+      }
     }
-    StrictGraphSuccessorsImpl(succ)
+    succ
+  } // Retourne un set de tuple qui contient un arc associe a sa distance et son temps
+
+  lazy val GPSGraphSecond : ( Set[Arc[String]],Map[Arc[String], Double],Map[Arc[String], Double], Set[String] ) = {
+    val myTuple = (GPSGraphFirstDecomposition foldLeft (Set.empty[Arc[String]], Map.empty[Arc[String],Double],
+          Map.empty[Arc[String],Double],Set.empty[String] ) ) {
+      (truple, nextElement) => {
+        val worksvp = ( (truple._1 + nextElement._1 ) , // Problem TOD O //Remember: this work if you begin to ask why it doesn't
+        truple._2 + (nextElement._1 -> nextElement._2._1),
+        truple._3 + (nextElement._1 -> nextElement._2._2),
+        (truple._4.+(nextElement._1._1)).+(nextElement._1._2) )
+        worksvp //Don't ask why, the compilator consider this a Map[String,Double] if I don't make it a val
+      }
+    }
+    myTuple
   }
 
-  lazy val GPSMapOfDistance : Map[Arc[String], Double] = ???
-  lazy val GPSMapOfTime : Map[Arc[String], Double] = ???
   lazy val GPSProcessor : (StrictGraph[String],Map[Arc[String], Double],Map[Arc[String], Double]) = {
     //cle: sommet: valeur
-    ( GPSGraph, GPSMapOfDistance,GPSMapOfTime)
+    ( StrictGraphDefaultImpl.apply(GPSGraphSecond._4,GPSGraphSecond._1), GPSGraphSecond._2,GPSGraphSecond._3)
   }
 
 
