@@ -66,9 +66,9 @@ case class FileReading(FileName: String) {
     val lat1bis = if(longAndLat1._8=="W") -1*lat1 else lat1
     val lat2bis = if(longAndLat2._8=="W") -1*lat2 else  lat2
 
-    val dLat=(lat2bis - lat1bis)*180/Pi
-    val dLon=(long2bis - long1bis)*180/Pi
-    val a = pow(sin(dLat/2),2) + pow(sin(dLon/2),2) * cos(lat1*180/Pi) * cos(lat2*180/Pi)
+    val dLat=(lat2bis - lat1bis)*180*Pi
+    val dLon=(long2bis - long1bis)*180*Pi
+    val a = pow(sin(dLat/2),2) + pow(sin(dLon/2),2) * cos(lat1*180*Pi) * cos(lat2*180*Pi)
     val c = 2 * asin(sqrt(a))
     val R = 6372.8
     R * c
