@@ -45,17 +45,18 @@ case class FileReading(FileName: String) {
                                        pair: (String, (Int, Int, Int, String, Int, Int, Int, String))) :
   (Map[String, Set[String]], Map[Edge[String], Double], Map[String, (Int, Int, Int, String, Int, Int, Int, String)]) = {
     val longAndLat = (antenne(3).toInt,antenne(4).toInt,antenne(5).toInt,antenne(6),antenne(7).toInt,antenne(8).toInt,antenne(9).toInt,antenne(10))
-    if (calculDistance(pair._2)(longAndLat) < nonInter)
+    val distance = calculDistance(pair._2,longAndLat)
+    if ( distance < nonInter)
       (
         tuple3._1 + (antenne(0) -> (tuple3._1(antenne(0)) + pair._1)),
-        tuple3._2 + (Edge(antenne(0),pair._1) -> calculDistance(pair._2)(longAndLat)),
+        tuple3._2 + (Edge(antenne(0),pair._1) -> distance),
         tuple3._3 + (antenne(0) -> longAndLat)
       )
     else tuple3
   }
 
 
-  def calculDistance(longAndLat1:(Int,Int,Int,String,Int,Int,Int,String))(longAndLat2:(Int,Int,Int,String,Int,Int,Int,String)) : Double = {
+  def calculDistance(longAndLat1:(Int,Int,Int,String,Int,Int,Int,String),longAndLat2:(Int,Int,Int,String,Int,Int,Int,String)) : Double = {
     val long1=longAndLat1._1+(longAndLat1._2/60)+(longAndLat1._3/3600)
     val lat1=longAndLat1._5+(longAndLat1._6/60)+(longAndLat1._7/3600)
     val long2=longAndLat2._1+(longAndLat2._2/60)+(longAndLat2._3/3600)
